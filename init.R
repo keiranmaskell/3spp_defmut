@@ -1,6 +1,6 @@
 
 #default_wd <- "~/Dropbox/tripartite-symbiosis/new_code"
-default_wd <- "/Users/keiranmaskell/Desktop/3spp_defmut_code"
+default_wd <- "/Users/keiranmaskell/Desktop/3spp_defmut_code/3spp_defmut"
 
 #define working direcory
 if(readline("Is this your first time running this? (y/n)")=='y'){
@@ -58,3 +58,10 @@ make.pop <- function(prms){
     pop.init
 }
 
+#make directories for the output files and figures
+if(!dir.exists("./output")){
+  system("mkdir output")
+}
+if(!dir.exists("./figs")){
+  system("mkdir figs")
+}

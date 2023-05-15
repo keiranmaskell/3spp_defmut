@@ -258,7 +258,7 @@ fitness_calculators <- function(res_data,cutoff_list){
 
 #04/26/2023 index the populations in by generation in res, and index the seed for each operation
 #using the seedlist
-total_cost_matrix <- function(res.data=res, prms=prms, seedlist, filepath, timetag, testing){
+total_cost_matrix <- function(res.data, prms, seedlist, filepath, timetag, testing){
   
   #define the arrays which will hold growth matrices, modified growth matrices, 
   #and total cost matrices
@@ -519,7 +519,7 @@ total_cost_matrix <- function(res.data=res, prms=prms, seedlist, filepath, timet
   names(dimnames(tcostarr_r)) <- c('gen', 'costs_of_r', 'patch')
   
   #save data
-  total_cost.data <- list(res=res, growth_array = growtharr, m_totalcost_array = tcostarr_m,
+  total_cost.data <- list(res=res.data, growth_array = growtharr, m_totalcost_array = tcostarr_m,
                           r_totalcost_array = tcostarr_r, prms=prms)
   save(total_cost.data, file=sprintf('%s/kdm_total_costs_%s.RData',filepath, timetag))
 }
@@ -793,6 +793,541 @@ component_cost_matrix <- function(res.data, prms, curr_prms, seedlist, filepath,
   names(dimnames(c_costarr)) <- c('gen', 'component_costs', 'patch')
   
   #save data
-  component_cost.data <- list(res=res, growth_array = growtharr, component_cost_array = c_costarr, original_prms=curr_prms, modified_prms=mod_prms)
+  component_cost.data <- list(res=res.data, growth_array = growtharr, component_cost_array = c_costarr, original_prms=curr_prms, modified_prms=mod_prms)
   save(component_cost.data, file=sprintf('%s/kdm_component_costs_%s%s.RData', filepath,filnam,timetag))
 }
+
+
+
+
+
+collect_data <- function(fp,master_df,exp,rep,scenario,prms,datenow,plot_yn){
+  
+
+experiment <- exp
+repnum <- as.character(rep)
+scenario <-scenario
+#prms <- make.prms(ngens=4000,mu.r=0.05,sigma.m=0,b.fm=0,sigma.v=0.1,sigma.mf=-0.2,sigma.fm=-0.2,r.forage=0.05)
+
+#collect data about prms
+#Invasion gen
+invasion_date <- prms$intrdate
+#Parasitism inc or dec
+if(sign(prms$v.v) == 1){
+  parasitism_incdec <- '+'
+}else{if(sign(prms$v.v == 0)){
+  parasitism_incdec <- 'c'
+}else{
+  parasitism_incdec <- '-'
+}
+}
+#Parasitoid effects y/n
+if(prms$b.fm !=0 | prms$sigma.m != 0){
+  parasitoid_yn <- 'Y'
+}else{
+  parasitoid_yn <-'N'
+}
+#Parasitoid inc or dec
+if(parasitoid_yn == 'N'){
+  parasitoid_incdec <- NA
+}else{
+  if(prms$b.fm ==0 | prms$mu.m ==0){
+    parasitoid_incdec <- 'c'
+  }else{
+    if(prms$b.fm >0){
+      parasitoid_incdec <- '+'
+    }else{
+      parasitoid_indec <- '-'
+    }
+  }
+}
+#Competition F to M y/n
+if(prms$a.mf ==0 & prms$sigma.mf ==0){
+  competition_ftom <- 'n'
+}else{
+  if(prms$a.mf > 0){
+    if(prms$a.mf + prms$sigma.mf > 0){
+      competition_ftom <- 'y'
+    }else{
+      competition_ftom <- 'n'
+    }
+  }else{
+    if(prms$a.mf <0){
+      if(prms$sigma.mf >0){
+        competition_ftom <- 'y'
+      }else{
+        competition_ftom <- 'n'
+      }
+    }
+  }
+}
+
+#Competition M to F y/n
+if(prms$a.fm ==0 & prms$sigma.fm ==0){
+  competition_mtof <- 'n'
+}else{
+  if(prms$a.fm > 0){
+    if(prms$a.fm + prms$sigma.fm > 0){
+      competition_mtof <- 'y'
+    }else{
+      competition_mtof <- 'n'
+    }
+  }else{
+    if(prms$a.fm <0){
+      if(prms$sigma.fm >0){
+        competition_mtof <- 'y'
+      }else{
+        competition_mtof <- 'n'
+      }
+    }
+  }
+}
+
+#Competition F to M inc / dec
+if(competition_ftom == 'n'){
+  competition_ftom_incdec <- NA
+}else{
+  if(prms$a.mf ==0 | prms$mu.mf ==0){
+    competition_ftom_incdec <- 'c'
+  }else{
+    if(prms$a.mf >0){
+      competition_ftom_incdec <- '+'
+    }else{
+      competition_ftom_incdec <- '-'
+    }
+  }
+}
+
+#Competition M to F inc / dec
+if(competition_mtof == 'n'){
+  competition_mtof_incdec <- NA
+}else{
+  if(prms$a.fm ==0 | prms$mu.fm ==0){
+    competition_mtof_incdec <- 'c'
+  }else{
+    if(prms$a.fm >0){
+      competition_mtof_incdec <- '+'
+    }else{
+      competition_mtof_incdec <- '-'
+    }
+  }
+}
+
+#Cooperation F to M y/n
+if(prms$a.mf ==0 & prms$sigma.mf ==0){
+  cooperation_ftom <- 'n'
+}else{
+  if(prms$a.mf > 0){
+    if(prms$sigma.mf < 0){
+      cooperation_ftom <- 'y'
+    }else{
+      cooperation_ftom <- 'n'
+    }
+  }else{
+    if(prms$a.mf <0){
+      if(prms$a.mf + prms$sigma.mf <0){
+        cooperation_ftom <- 'y'
+      }else{
+        cooperation_ftom <- 'n'
+      }
+    }
+  }
+}
+
+#Cooperation M to F y/n
+if(prms$a.fm ==0 & prms$sigma.fm ==0){
+  cooperation_mtof <- 'n'
+}else{
+  if(prms$a.fm > 0){
+    if(prms$sigma.fm < 0){
+      cooperation_mtof <- 'y'
+    }else{
+      cooperation_mtof <- 'n'
+    }
+  }else{
+    if(prms$a.fm <0){
+      if(prms$a.fm + prms$sigma.fm <0){
+        cooperation_mtof <- 'y'
+      }else{
+        cooperation_mtof <- 'n'
+      }
+    }
+  }
+}
+
+#Cooperation F to M inc / dec
+if(cooperation_ftom == 'n'){
+  cooperation_ftom_incdec <- NA
+}else{
+  if(prms$a.mf ==0 | prms$mu.mf ==0){
+    cooperation_ftom_incdec <- 'c'
+  }else{
+    if(prms$a.mf >0){
+      cooperation_ftom_incdec <- '-'
+    }else{
+      cooperation_ftom_incdec <- '+'
+    }
+  }
+}
+#Cooperation M to F inc / dec
+if(cooperation_mtof == 'n'){
+  cooperation_mtof_incdec <- NA
+}else{
+  if(prms$a.fm ==0 | prms$mu.fm ==0){
+    cooperation_mtof_incdec <- 'c'
+  }else{
+    if(prms$a.fm >0){
+      cooperation_mtof_incdec <- '-'
+    }else{
+      cooperation_mtof_incdec <- '+'
+    }
+  }
+}
+#R foraging
+if(prms$r.forage !=0){
+  r_foraging <- 'y'
+}else{
+  r_foraging <- 'n'
+}
+
+
+#run the model
+pop <- make.pop(prms)
+
+#test pairwise F&R
+popfr <- pop
+popfr[,'m'] <- 0
+#new seedlist created in response to FALSE argument
+res <- run.seq.sim.new(popfr, prms, fec=FALSE,set_seedlist=FALSE)
+seedlist <- res[2][[1]]
+res_fr <- res[1][[1]]
+#save data
+tt <- gsub(' ','_', gsub(':','',Sys.time()))
+data.grab(res_fr,prms,fp,tt)
+#get average metapops
+rundata <- list.files(fp,pattern=tt)
+rundf <- load(sprintf('%s/%s/%s',getwd(),fp,rundata))
+rundf_data <- get(rundf)
+res_fr <- rundf_data[1]
+res_fr <- res_fr[[1]]
+fr_metapop_data <- fitness_calculators(res_fr,c(FALSE,FALSE,FALSE))
+fr_f_avg_metapop <- fr_metapop_data['farmer mean metapop'][1,1]
+fr_f_metapop_stdev <- fr_metapop_data['farmer metapop stdev'][1,1]
+fr_r_avg_metapop <- fr_metapop_data['raider mean metapop'][1,1]
+fr_r_metapop_stdev <- fr_metapop_data['raider metapop stdev'][1,1]
+if(sum(res_fr[prms$ngens,'num.f',])!=0 & sum(res_fr[prms$ngens,'num.r',])!=0){
+  pairwise_fr_outcome <- 'coex'
+}else{
+  if(sum(res_fr[prms$ngens,'num.f',])==0){
+    pairwise_fr_outcome <- 'collapse'
+  }else{
+    pairwise_fr_outcome <- 'failure'
+  }
+}
+
+
+#test pairwise F&M but keep the seeds
+popfm <- pop
+popfm[,'r'] <- 0
+res <- run.seq.sim.new(popfm, prms, fec=FALSE,set_seedlist=seedlist)
+res_fm <- res[1][[1]]
+tt <- gsub(' ','_', gsub(':','',Sys.time()))
+data.grab(res_fm,prms,fp,tt)
+rundata <- list.files(fp,pattern=tt)
+rundf <- load(sprintf('%s/%s/%s',getwd(),fp,rundata))
+rundf_data <- get(rundf)
+res_fm <- rundf_data[1]
+res_fm <- res_fm[[1]]
+fm_metapop_data <- fitness_calculators(res_fm,c(FALSE,FALSE,FALSE))
+fm_f_avg_metapop <- fm_metapop_data['farmer mean metapop'][1,1]
+fm_f_metapop_stdev <- fm_metapop_data['farmer metapop stdev'][1,1]
+fm_m_avg_metapop <- fm_metapop_data['merc mean metapop'][1,1]
+fm_m_metapop_stdev <- fm_metapop_data['merc metapop stdev'][1,1]
+if(sum(res_fm[prms$ngens,'num.f',])!=0 & sum(res_fm[prms$ngens,'num.m',])!=0){
+  pairwise_fm_outcome <- 'coex'
+}else{
+  if(sum(res_fm[prms$ngens,'num.f',])==0){
+    pairwise_fm_outcome <- 'collapse'
+  }else{
+    pairwise_fm_outcome <- 'failure'
+  }
+}
+
+#test all 3; still same seeds
+res <- run.seq.sim.new(pop, prms, fec=FALSE,set_seedlist=seedlist)
+res <- res[1][[1]]
+tt <- gsub(' ','_', gsub(':','',Sys.time()))
+data.grab(res,prms,fp,tt)
+rundata <- list.files(fp,pattern=tt)
+rundf <- load(sprintf('%s/%s/%s',getwd(),fp,rundata))
+rundf_data <- get(rundf)
+res_all3 <- rundf_data[1]
+res_all3 <- res_all3[[1]]
+#res_all3 <- res
+all3_metapop_data <- fitness_calculators(res_all3,c(FALSE,FALSE,FALSE))
+all3_f_avg_metapop <- all3_metapop_data['farmer mean metapop'][1,1]
+all3_f_metapop_stdev <- all3_metapop_data['farmer metapop stdev'][1,1]
+all3_m_avg_metapop <- all3_metapop_data['merc mean metapop'][1,1]
+all3_m_metapop_stdev <- all3_metapop_data['merc metapop stdev'][1,1]
+all3_r_avg_metapop <- all3_metapop_data['raider mean metapop'][1,1]
+all3_r_metapop_stdev <- all3_metapop_data['raider metapop stdev'][1,1]
+
+
+tt <- gsub(' ','_', gsub(':','',Sys.time()))
+total_cost_matrix(res_all3, prms, seedlist, fp, tt, testing =FALSE)
+
+component_cost_matrix(res_all3, make.prms(),prms, seedlist, fp, tt, testing =FALSE,"mu.r")
+component_cost_matrix(res_all3, make.prms(),prms, seedlist, fp, tt, testing =FALSE,"a.fm","a.mf")
+component_cost_matrix(res_all3, make.prms(),prms, seedlist, fp, tt, testing =FALSE,"b.fm","sigma.m")
+component_cost_matrix(res_all3, make.prms(),prms, seedlist, fp, tt, testing =FALSE,"v.v","sigma.v")
+component_cost_matrix(res_all3, make.prms(),prms, seedlist, fp, tt, testing =FALSE,"b.fr","sigma.r")
+component_cost_matrix(res_all3, make.prms(),prms, seedlist, fp, tt, testing =FALSE,"r.forage")
+
+
+
+if(sum(res_all3[prms$ngens,'num.f',])!=0 & sum(res_all3[prms$ngens,'num.m',])!=0 & sum(res_all3[prms$ngens,'num.m',]!=0)){
+  all3_outcome <- 'coex'
+}else{
+  if(sum(res_all3[prms$ngens,'num.f',])==0){
+    all3_outcome <- 'collapse'
+  }else{
+    if(sum(res_all3[prms$ngens,'num.m',] & sum(res_all3[prms$ngens,'num.r',])==0)){
+      all3_outcome <- 'both failure'
+    }else{
+      if(sum(res_all3[prms$ngens,'num.m',]==0)){
+        all3_outcome <- 'merc failure'
+      }else{
+        all3_outcome <- 'raider failure'
+      }
+    }
+  }
+}
+
+
+
+#also dispersal 
+
+#also fitness landscapes 
+
+#also tsne on other params
+
+
+totaldata_list <- list.files(fp,pattern='total_costs')
+compdata_list <- list.files(fp,pattern='component')
+
+#Mercs true mutualists
+for(j in totaldata_list){
+  filepath_tcost <- sprintf('%s/%s',fp,j)
+  dftotal_costs <- load(file.path(sprintf('%s',filepath_tcost)), tcost_env <- new.env() )
+  dftotal_costs <- load(file.path(sprintf('%s',filepath_tcost)))
+  df_total_costs_data <- get(dftotal_costs)
+  
+  #growth_array <- df_total_costs_data[2][[1]]
+  m_totalcosts <- df_total_costs_data[3][[1]]
+  #r_totalcosts <- df_total_costs_data[4][[1]]
+  raw_avg_cost_ben_mercs_to_farmers <- mean(m_totalcosts[,'benefit_m_to_f',])
+  stdev_cost_ben <- sd(m_totalcosts[,'benefit_m_to_f',])
+  
+  if(raw_avg_cost_ben_mercs_to_farmers>0){
+    mercs_mutualists <- 'y'
+  }else{
+    mercs_mutualists <- 'n'
+  }
+
+}
+
+
+#Notes
+notes <- NA
+#Datadir
+datadir <- fp
+
+#plotting
+#make plot directory
+plotfp <- sprintf('figs/%s_scenario%s_%s',datenow,scenario,tt)
+system(paste0('mkdir ',plotfp,''))
+
+#Figdir
+figdir <- plotfp
+
+
+data_vec <- c(experiment,repnum,scenario,pairwise_fr_outcome,pairwise_fm_outcome,all3_outcome,fr_f_avg_metapop,fr_r_avg_metapop,fr_f_metapop_stdev,fr_r_metapop_stdev,fm_f_avg_metapop,fm_m_avg_metapop,fm_f_metapop_stdev,fm_m_metapop_stdev,all3_f_avg_metapop,all3_m_avg_metapop,all3_r_avg_metapop,all3_f_metapop_stdev,all3_m_metapop_stdev,all3_r_metapop_stdev,invasion_date,parasitism_incdec,parasitoid_yn,parasitoid_incdec,competition_ftom,competition_mtof,cooperation_ftom,cooperation_mtof,competition_ftom_incdec,competition_mtof_incdec,cooperation_ftom_incdec,cooperation_mtof_incdec,r_foraging,mercs_mutualists,raw_avg_cost_ben_mercs_to_farmers,stdev_cost_ben,notes,datadir,figdir,unlist(prms))
+
+master_df <- readRDS(master_df)
+
+master_transpose <- cbind(t(master_df),data_vec)
+#View(t(master_transpose))
+master_df <- t(master_transpose)
+#works
+saveRDS(master_df,sprintf('%s/output/master_df.RDS',getwd()))
+
+
+
+
+
+#plot populations
+for(i in 1:prms$npatch){
+  plot.pop.patch(patch=i,prms=prms,res=res,plotfp)
+}
+#plot metapopulations
+plot.pop.all(prms,res,plotfp)
+
+
+
+
+#plot total costs
+for(j in totaldata_list){
+  filepath_tcost <- sprintf('%s/%s',fp,j)
+  #filepath_tcost <- "/Users/keiranmaskell/Dropbox/tripartite-symbiosis/new_code/output/03_14_scenario14_bfr_coexistence_1/kdm_total_costs_2023-03-14 21:15:14.RData"
+  dftotal_costs <- load(file.path(sprintf('%s',filepath_tcost)), tcost_env <- new.env() )
+  
+  #Merc costs
+  #plot.pop.tcosts(patch,`prms,tcostarr,species)
+  for(i in 1:prms$npatch){
+    plot.pop.tcosts(patch=i,prms=prms,tcostarr=tcost_env$total_cost.data$m_totalcost_array,
+                    species='Mercenaries',sep='n', plotfp)
+  }
+  for(i in 1:prms$npatch){
+    plot.pop.tcosts(patch=i,prms=prms,tcostarr=tcost_env$total_cost.data$m_totalcost_array,
+                    species='Mercenaries',sep='y', plotfp)
+  }
+  
+  #Raider costs
+  for(i in 1:prms$npatch){
+    plot.pop.tcosts(patch=i,prms=prms,tcostarr=tcost_env$total_cost.data$r_totalcost_array,
+                    species='Raiders',sep='n', plotfp)
+  }
+  for(i in 1:prms$npatch){
+    plot.pop.tcosts(patch=i,prms=prms,tcostarr=tcost_env$total_cost.data$r_totalcost_array,
+                    species='Raiders',sep='y', plotfp)
+  }
+  
+  
+#   
+#   #plot growth over gens
+#   #plot.pop.growth(patch, prms, growtharr)
+#   for(i in 1:prms$npatch){
+#     plot.pop.growth(patch=i,prms=prms,growtharr=tcost_env$total_cost.data$growth_array,sep='n', plotfp)
+#   }
+#   
+#   for(i in 1:prms$npatch){
+#     plot.pop.growth(patch=i,prms=prms,growtharr=tcost_env$total_cost.data$growth_array,sep='y', plotfp)
+#   }
+  
+  }
+
+
+
+
+#component costs
+for(j in compdata_list){
+  filepath_ccost <- sprintf('%s/%s',fp,j)
+  #print(filepath_ccost)
+  dfcomp_costs <- load(file.path(sprintf('%s',filepath_ccost)), ccost_env <- new.env() )
+  
+  
+  # #all together
+  # for(i in 1:prms$npatch){
+  #   plot.pop.comp.costs(patch=i,prms=prms,ccostarr=ccost_env$component_cost.data$component_cost_array,
+  #                       orig.prms=ccost_env$component_cost.data$original_prms,
+  #                       mod.prms=ccost_env$component_cost.data$modified_prms,
+  #                       sep='n',
+  #                       movavg=20,plotfp)
+  # }
+  #separated
+  for(i in 1:prms$npatch){
+    plot.pop.comp.costs(patch=i,prms=prms,ccostarr=ccost_env$component_cost.data$component_cost_array,
+                        orig.prms=ccost_env$component_cost.data$original_prms,
+                        mod.prms=ccost_env$component_cost.data$modified_prms,
+                        sep='y',
+                        movavg=20,plotfp)
+  }
+  
+  for(i in 1:prms$npatch){
+    plot.pop.comp.costs(patch=i,prms=prms,ccostarr=ccost_env$component_cost.data$component_cost_array,
+                        orig.prms=ccost_env$component_cost.data$original_prms,
+                        mod.prms=ccost_env$component_cost.data$modified_prms,
+                        sep='y',
+                        movavg=250,plotfp)
+  }
+  
+  # #plot psplines of component cost
+  # for(i in 1:prms$npatch){
+  #   comp_costplot.splines(cost_fp = filepath_ccost, patch=i,plotfp)
+  # }
+  
+  
+}
+
+
+}
+
+#num_reps should make it repeat the same runs multiple times, recording what rep it is in repnum
+run.model <- function(index, num_reps, scen){
+  
+  if(length(list.files('output',pattern='master_df.RDS'))==0){
+    #create master file for data collection
+    master_df <- data.frame(matrix(ncol=88,nrow=0))
+    #length(c('Experiment','rep num','Scenario','Pairwise F&R','Pairwise F&M','All 3','F&R F avg metapop','F&R avg metapop','F&R F metapop stdev','F&R R metapop stdev','F&M F avg metapop','F&M M avg metapop','F&M F metapop stdev','F&M M metapop stdev','All 3 F avg metapop','All 3 M avg metapop','All 3 R avg metapop','All 3 F metapop stdev','All 3 M metapop stdev','All 3 R metapop stdev','Invasion gen','Parasitism inc or dec','Parasitoid effects','Parasitoid effects inc or dec','Competition F to M','Competition M to F','Cooperation F to M','Cooperation M to F','Competition F to M inc or dec','Competition M to F inc or dec','Cooperation F to M inc or dec','Cooperation M to F inc or dec','R Foraging','Mercs true mutualists','Raw avg cost/ben','Std dev cost/ben','Notes','Datadir','Figdir','a.fm','a.mf','a.mr','a.rm','b.fm','b.fr','conv.ftom','conv.ftor','depredation.case','dispersal.case','forageswitchon','frac.f.disperse','frac.m.disperse','frac.r.disperse','g.f','g.m','g.r','h.fm','h.fr','f_init','m_init','r_init','intrdate','k.f','k.m','k.r','mu.fm','mu.m','mu.mf','mu.r','mu.v','ngens','npatch','print.pop','r.f','r.forage','raider.type','seed','sigma.fm','sigma.m','sigma.mf','sigma.r','sigma.v','theta.fm','theta.m','theta.mf','theta.r','theta.v','v.v'))
+    colnames(master_df) <- c('Experiment','rep num','Scenario','Pairwise F&R','Pairwise F&M','All 3','F&R F avg metapop','F&R avg metapop','F&R F metapop stdev','F&R R metapop stdev','F&M F avg metapop','F&M M avg metapop','F&M F metapop stdev','F&M M metapop stdev','All 3 F avg metapop','All 3 M avg metapop','All 3 R avg metapop','All 3 F metapop stdev','All 3 M metapop stdev','All 3 R metapop stdev','Invasion gen','Parasitism inc or dec','Parasitoid effects','Parasitoid effects inc or dec','Competition F to M','Competition M to F','Cooperation F to M','Cooperation M to F','Competition F to M inc or dec','Competition M to F inc or dec','Cooperation F to M inc or dec','Cooperation M to F inc or dec','R Foraging','Mercs true mutualists','Raw avg cost/ben','Std dev cost/ben','Notes','Datadir','Figdir','a.fm','a.mf','a.mr','a.rm','b.fm','b.fr','conv.ftom','conv.ftor','depredation.case','dispersal.case','forageswitchon','frac.f.disperse','frac.m.disperse','frac.r.disperse','g.f','g.m','g.r','h.fm','h.fr','f_init','m_init','r_init','intrdate','k.f','k.m','k.r','mu.fm','mu.m','mu.mf','mu.r','mu.v','ngens','npatch','print.pop','r.f','r.forage','raider.type','seed','sigma.fm','sigma.m','sigma.mf','sigma.r','sigma.v','theta.fm','theta.m','theta.mf','theta.r','theta.v','v.v')
+    saveRDS(master_df,sprintf('%s/output/master_df.RDS',getwd()))
+  }
+  
+  #read_master <- readRDS('output/master_df.RDS')
+  read_master <- file.path("output",pattern='master_df.RDS')
+  #typeof(read_master)
+
+  scenario <- scen
+  
+  for(xx in 1:nrow(index)){
+    #print(xx)
+    
+    
+    prms <- make.prms(ngens=4000,
+                      r.forage = index[xx,'r.forage'],
+                      mu.r= index[xx,'mu.r'],
+                      mu.mf= index[xx,'mu.f'],
+                      mu.fm= index[xx,'mu.f'],
+                      h.fr= index[xx,'h.fr'],
+                      b.fr = 1.0,
+                      a.mf = 0.1,
+                      a.fm = 0.1,
+                      sigma.fm = 0.2,
+                      sigma.mf = 0.2,
+                      frac.m.disperse=0.01,
+                      frac.r.disperse=0.05,
+                      b.fm=0.00017,
+                      h.fm = 6.0,
+                      seed = 6,
+                      mu.m = 0.5,
+    )
+    
+    tt <- gsub(' ','_', gsub(':','',Sys.time()))
+    datenow <- Sys.Date()
+    fp <- sprintf('output/%s_scenario%s_%s',datenow,scenario,tt)
+    system(paste0('mkdir ',fp,''))
+    
+    for(jj in seq(1,num_reps,1)){
+      #print(jj)
+      # datalist <- run.model(xx)
+      # res <- datalist[1][[1]]
+      # b <- datalist[2][[1]]
+      
+      collect_data(fp=fp,master_df=read_master,exp=xx,rep=jj,scenario=NA,prms=prms,datenow=datenow,plot_yn=TRUE)
+      
+    }
+    
+  }
+  read_master <- readRDS(sprintf('%s/output/master_df.RDS',getwd()))
+  View(read_master)
+}
+
+#run.model(index=index,num_reps=5,scen=NA)
+
+
+
+
+
+
+
+
