@@ -5,7 +5,7 @@ if(readline("Is this your first time running this? (y/n)")=='y'){
   setwd(wd)
 }else{
   message("Using default working directory")
-  setwd(getwd())
+  system("cd */3spp_defmut-main")
 }
 
 #audio message to play upon error
