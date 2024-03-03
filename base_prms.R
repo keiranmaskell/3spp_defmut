@@ -1,52 +1,74 @@
 
-make.prms <- function(k.f = 1000,
-                      k.m = 100,
-                      k.r = 100,
-                      a.fm = -0.5,
-                      a.mf = -0.5,
+make.prms <- function(
+
+                      #intrinsic growth rates
+                      r.f= 0.6,
+                      r.forage=0,
+
+                      #intrinsic death rates
+                      g.f = 0.01,
+                      g.m = 0.01,
+                      g.r = 0.01,
+
+                      #density-dependent death rates
+                      d.f = 0.001,
+                      d.m = 0.01,
+                      d.r = 0.01,
+
+                      #sigmoid parameter A
+                      a.fm = 0,
+                      a.mf = 0,
                       a.rm = 0,
                       a.mr = 0,
-                      b.fr = -0.3,
-                      b.fm = 0.3,
-                      mu.m = 0.05,
+                      v.v = 0,
+                      b.fr = 0.1,
+
+                      #sigmoid parameter B
+                      theta.mf = 1,
+                      theta.fm = 1,
+                      theta.v = 1,
+                      theta.r = 1,
+                    
+                      #sigmoid parameter C
                       #mu.r = 0.0015,
-                      mu.r = 0.05,
                       mu.mf = 0.08,
                       mu.fm = 0.08,
                       mu.v = 0.05,
-                      theta.m = 5,
-                      theta.r = 5,
-                      theta.mf = 5,
-                      theta.fm = 5,
-                      theta.v = 5,
-                      r.f = 0.3,
-                      v.v = 0.1,
-                      h.fr = 4,
-                      h.fm = 6,
-                      conv.ftom = 1,
-                      conv.ftor = 1,
-                      g.f = 0.1,
-                      g.m = 0.1,
-                      g.r = 0.1,
+                      mu.r = -0.05,
+
+                      #sigmoid parameter D
+                      sigma.r = 0,
+                      sigma.mf = 0,
+                      sigma.fm = 0,
+                      sigma.v = 0,
+            
+                      #predator efficiency
+                      h.fr = 0.8,
+
+                      #conversion rates
+                      conv.ftom = 0.3,
+                      conv.ftor = 0.3,
+                      
+                      #dispersal rates
                       frac.f.disperse = 0.01,
                       frac.m.disperse = 0.001,
                       frac.r.disperse = 0.001,
-                      sigma.m = 0.1,
-                      sigma.r = 0.3,
-                      sigma.mf = 0.2,
-                      sigma.fm = 0.2,
-                      sigma.v = 0.1,
-                      init.pop.size = c(f = 3000, m = 30, r = 10),
+
+                      #other parameters
+                      init.pop.size = c(f = 1000, m = 10, r = 10),
+                      #Holling type of predators
                       raider.type=3,
-                      npatch = 12,
-                      forageswitchon = TRUE,
-                      r.forage = 0,
+                      #number of patches
+                      npatch = 1,
+                      #dispersal function type
                       dispersal.case = 'cloud',
-                      depredation.case = '3',
+                      #mercenary invasion timepoint
                       intrdate = 1,
-                      print.pop=T,
-                      ngens = 2000,
-                      seed = 6){
+                      #switch for whether to print the population matrix over time as the simulation runs
+                      #print.pop=T,
+                      print.pop=F,
+                      #total number of generations (timepoints)
+                      ngens = 4000){
   
 
   inputs <- as.list(environment())
@@ -56,87 +78,87 @@ make.prms <- function(k.f = 1000,
 
 prms.update <- function(prms, rand=FALSE){
 
-  if(rand==T){
-    mu.m <- runif(1,0.5,4)
-    mu.r <- runif(1,0.05,4)
-    mu.f <- runif(1,0.5,4)
-    sigma.f <- runif(1,0.5,4)
-    sigma.m <- runif(1,0.5,4)
-    sigma.r <- runif(1,0.5,4)
-    h.fr <- runif(1,0.5,4)
-    h.fm <- runif(1,0.5,4)
-    r.f <- runif(1,0.1,1)
-    b.fm <- runif(1,0.1,1)
-    b.fr<- runif(1,0.1,1)
-    a.fm <- runif(1,0.1,4)
-    a.mf <- runif(1,0.1,4)
-    r.forage <- runif(1,0.1,1)
-    #r.forage <- 0
-    #r.forage <- 0.1
-    conv.ftom <- runif(1,0.01,0.5)
-    conv.ftor <- runif(1,0.01,0.5)
-    g.f <- runif(1,0.01,0.5)
-    g.m <- runif(1,0.01,0.5)
-    g.r <- runif(1,0.01,0.5)
-    #g.r <- 0.9
-    frac.f.disperse <- runif(1,0.01,0.5)
-    frac.m.disperse <- runif(1,0.01,0.5)
-    frac.r.disperse <- runif(1,0.01,0.5)
-    #omega.m - intrinsic attack rate level coefficient of mercs
-    omega.m <- runif(1,0.01,1.0)
-    psi.m <- runif(1,0.00001, 0.1)
+  if(rand==TRUE){
+    
+    
+   #intrinsic growth rates
+   prms <- make.prms(
+                      r.f= 0.6,
+                      #expt 1 ~3
+                      #r.forage=0,
+                      #expt 4
+                      r.forage=runif(1,0,0.6),
+
+                      #intrinsic death rates
+                      g.f = 0.01,
+                      g.m = 0.01,
+                      g.r = 0.01,
+
+                      #density-dependent death rates
+                      d.f = 0.01,
+                      d.m = 0.01,
+                      d.r = 0.01,
+
+                      #sigmoid parameter A
+                      a.fm = runif(1,0,1),
+                      a.mf = runif(1,-1,1),
+                      a.rm = 0,
+                      a.mr = 0,
+                      v.v = runif(1,0,1),
+                      b.fr = runif(1,0,1),
+
+                      #sigmoid parameter B
+                      theta.mf = runif(1,0.5,1),
+                      theta.fm = runif(1,0.5,1),
+                      theta.v = runif(1,0.5,1),
+                      theta.r = runif(1,0.5,1),
+                    
+                      #sigmoid parameter C
+                      #mu.r = 0.0015,
+                      mu.mf = runif(1,-1,1),
+                      mu.fm = runif(1,-1,1),
+                      mu.v = runif(1,-1,1),
+                      mu.r = runif(1,-1,0),
+
+                      #sigmoid parameter D
+                      sigma.r = runif(1,0,0.3),
+                      sigma.mf = runif(1,-0.3,0.3),
+                      sigma.fm = runif(1,-0.3,0.3),
+                      sigma.v = runif(1,0,0.3),
+            
+                      #predator efficiency
+                      h.fr = runif(1,0,1),
+
+                      #conversion rates
+                      conv.ftom = 0.3,
+                      conv.ftor = 0.3,
+                      
+                      #dispersal rates
+                      frac.f.disperse = 0.01,
+                      frac.m.disperse = 0.001,
+                      frac.r.disperse = 0.001,
+
+                      #other parameters
+                      init.pop.size = c(f = 1000, m = 10, r = 10),
+                      #Holling type of predators
+                      raider.type=3,
+                      #number of patches
+                      npatch = 1,
+                      #dispersal function type
+                      dispersal.case = 'cloud',
+                      #mercenary invasion timepoint
+                      intrdate = 1,
+                      #switch for whether to print the population matrix over time as the simulation runs
+                      #print.pop=T,
+                      print.pop=F,
+                      #total number of generations (timepoints)
+                      ngens = 4000
+   )
+  
+    
 
   }
     
 return(prms)
 }
-
-
-
-#before 0403
-# make.prms <- function(k.f = 1000,
-#                       k.m = 100,
-#                       k.r = 100,
-#                       a.fm = 1.6,
-#                       a.mf = 0.5,
-#                       a.rm = 0,
-#                       a.mr = 0,
-#                       b.fr = 0.5,
-#                       b.fm = 0.001,
-#                       mu.m = 0.5,
-#                       mu.r = 0.0015,
-#                       mu.f = 0.08,
-#                       mu.fm = 0.08,
-#                       sigma.m = 3,
-#                       sigma.r = 0.01,
-#                       sigma.f = 1,
-#                       sigma.fm = 1,
-#                       r.f = 0.3, 
-#                       h.fr = 2,
-#                       h.fm = 6,
-#                       conv.ftom = 1,
-#                       conv.ftor = 1,
-#                       g.f = 0.1,
-#                       g.m = 0.1,
-#                       g.r = 0.1,
-#                       frac.f.disperse = 0.01,
-#                       frac.m.disperse = 0.001,
-#                       frac.r.disperse = 0.001,
-#                       omega.m = 0.1,
-#                       psi.m = 0.005,
-#                       sig.f = 1.1,
-#                       sig.fm = 1.1,
-#                       init.pop.size = c(f = 3000, m = 30, r = 10),
-#                       raider.type=3,
-#                       npatch = 12,
-#                       forageswitchon = TRUE,
-#                       r.forage = 0,
-#                       dispersal.case = 'cloud',
-#                       depredation.case = '3',
-#                       intrdate = 1,
-#                       print.pop=T,
-#                       ngens = 2000,
-#                       seed = 6,
-#                       sig.m = 0.0001,
-#                       v.m = 0.001){
 
