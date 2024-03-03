@@ -17,7 +17,8 @@ sorry_dave <- function(){
 
 #the list of R packages needed for this project
 list_of_packages <- c("matrixStats",
-                       "beepr","splines2")
+                       "beepr","splines2",
+                      "readxl","writexl")
 
 #check to see if packages are installed, if not, install them
 lapply(list_of_packages, function(pkg) {
