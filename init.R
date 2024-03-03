@@ -1,14 +1,11 @@
 
-#default_wd <- "~/Dropbox/tripartite-symbiosis/new_code"
-default_wd <- "/Users/keiranmaskell/Desktop/3spp_defmut_code/3spp_defmut"
-
 #define working direcory
 if(readline("Is this your first time running this? (y/n)")=='y'){
   wd <- readline("Specify working directory filepath")
   setwd(wd)
 }else{
   message("Using default working directory")
-  setwd(default_wd)
+  setwd(getwd())
 }
 
 #audio message to play upon error
@@ -45,10 +42,10 @@ if (all(unlist(loaded_packages))) {
 
 
 #source all the R files needed for this project
-source('population_function.R')
+source('population_functions.R')
 source('base_prms.R')
 source('meta_functions.R')
-source('plot_code.R')
+source('plotting.R')
  
 #initialize a population
 make.pop <- function(prms){
