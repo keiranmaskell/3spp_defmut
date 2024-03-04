@@ -1,17 +1,21 @@
 
-#define working direcory
-if(readline("Use default wd (search for '3spp_defmut-main' from Downloads folder)? (y/n)")=='y'){
-  
-  message("Using default working directory")
-  start_path <- "~/Downloads"
-  target_dir_name <- "3spp_defmut-main"
-  dirs <- list.dirs(path=start_path, recursive=TRUE)
-  found_dir <- names(unlist(sapply(dirs, grep, pattern=target_dir_name)))[1]
-  setwd(found_dir)
+if(interactive()){
 
-}else{
-  wd <- readline("Specify working directory filepath")
-  setwd(wd)
+  #define working direcory
+  if(readline("Use default wd (search for '3spp_defmut-main' from Downloads folder)? (y/n)")=='y'){
+
+    message("Using default working directory")
+    start_path <- "~/Downloads"
+    target_dir_name <- "3spp_defmut-main"
+    dirs <- list.dirs(path=start_path, recursive=TRUE)
+    found_dir <- names(unlist(sapply(dirs, grep, pattern=target_dir_name)))[1]
+    setwd(found_dir)
+
+  }else{
+    wd <- readline("Specify working directory filepath")
+    setwd(wd)
+  }
+
 }
 
 sprintf("current working directory is %s", getwd())
