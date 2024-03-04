@@ -1,11 +1,17 @@
 
 #define working direcory
-if(readline("Is this your first time running this? (y/n)")=='y'){
+if(readline("Use default wd (search for '3spp_defmut-main' from Downloads folder)? (y/n)")=='y'){
+  
+  message("Using default working directory")
+  start_path <- "~/Downloads"
+  target_dir_name <- "3spp_defmut-main"
+  dirs <- list.dirs(path=start_path, recursive=TRUE)
+  found_dir <- names(unlist(sapply(dirs, grep, pattern=target_dir_name)))[1]
+  setwd(found_dir)
+
+}else{
   wd <- readline("Specify working directory filepath")
   setwd(wd)
-}else{
-  message("Using default working directory")
-  system("cd */3spp_defmut-main")
 }
 
 #audio message to play upon error
