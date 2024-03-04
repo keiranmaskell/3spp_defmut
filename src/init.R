@@ -18,7 +18,7 @@ sprintf("current working directory is %s", getwd())
 
 #audio message to play upon error
 sorry_dave <- function(){
-   system("afplay ./resources/sorry_dave.mp3
+   system("afplay src/resources/sorry_dave.mp3
 ", 
    intern=FALSE)  
 }
