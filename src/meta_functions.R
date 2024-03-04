@@ -122,7 +122,7 @@ run.model <- function(index, num_reps, expt_id){
 
 
 
-collect_data <- function(fp,master_df,ind,repn,expt_id,prms,plot_yn){
+collect_data <- function(fp,master_df,ind,repn,expt_id,prms,plot_yn, calculate_costs=TRUE){
   
 datenow <- Sys.Date()
 
@@ -235,14 +235,18 @@ all3_r_metapop_stdev <- all3_metapop_data['raider metapop stdev'][1,1]
 
 tt <- gsub(' ','_', gsub(':','',Sys.time()))
 
-total_cost_matrix(res_all3, prms, seedlist, fp, tt, testing =FALSE)
 
-component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"mu.r")
-component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"a.fm","a.mf")
-component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"v.v","sigma.v")
-component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"b.fr","sigma.r")
-component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"r.forage")
+#if increasing returns causes the populations to hit the roof, don't try to calculate total_costs and component_costs
+if(!(any(res_all3 > 100000)) & calculate_costs ==TRUE){
 
+  total_cost_matrix(res_all3, prms, seedlist, fp, tt, testing =FALSE)
+
+  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"mu.r")
+  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"a.fm","a.mf")
+  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"v.v","sigma.v")
+  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"b.fr","sigma.r")
+  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"r.forage")
+}
 
 
 if(sum(res_all3[prms$ngens,'num.f',])!=0 & sum(res_all3[prms$ngens,'num.m',])!=0 & sum(res_all3[prms$ngens,'num.m',]!=0)){
@@ -268,25 +272,33 @@ if(sum(res_all3[prms$ngens,'num.f',])!=0 & sum(res_all3[prms$ngens,'num.m',])!=0
 totaldata_list <- list.files(fp,pattern='total_costs')
 compdata_list <- list.files(fp,pattern='component')
 
-#Mercs true mutualists
-for(j in totaldata_list){
-  filepath_tcost <- sprintf('%s/%s',fp,j)
-  dftotal_costs <- load(file.path(sprintf('%s',filepath_tcost)), tcost_env <- new.env() )
-  dftotal_costs <- load(file.path(sprintf('%s',filepath_tcost)))
-  df_total_costs_data <- get(dftotal_costs)
-  
-  #growth_array <- df_total_costs_data[2][[1]]
-  m_totalcosts <- df_total_costs_data[3][[1]]
-  #r_totalcosts <- df_total_costs_data[4][[1]]
-  raw_avg_cost_ben_mercs_to_farmers <- mean(m_totalcosts[,'benefit_m_to_f',])
-  stdev_cost_ben <- sd(m_totalcosts[,'benefit_m_to_f',])
-  
-  if(raw_avg_cost_ben_mercs_to_farmers>0){
-    mercs_mutualists <- 'y'
-  }else{
-    mercs_mutualists <- 'n'
+if(length(totaldata_list) > 0){
+
+  #Mercs true mutualists
+  for(j in totaldata_list){
+    filepath_tcost <- sprintf('%s/%s',fp,j)
+    dftotal_costs <- load(file.path(sprintf('%s',filepath_tcost)), tcost_env <- new.env() )
+    dftotal_costs <- load(file.path(sprintf('%s',filepath_tcost)))
+    df_total_costs_data <- get(dftotal_costs)
+
+    #growth_array <- df_total_costs_data[2][[1]]
+    m_totalcosts <- df_total_costs_data[3][[1]]
+    #r_totalcosts <- df_total_costs_data[4][[1]]
+    raw_avg_cost_ben_mercs_to_farmers <- mean(m_totalcosts[,'benefit_m_to_f',])
+    stdev_cost_ben <- sd(m_totalcosts[,'benefit_m_to_f',])
+
+    if(raw_avg_cost_ben_mercs_to_farmers>0){
+      mercs_mutualists <- 'y'
+    }else{
+      mercs_mutualists <- 'n'
+    }
+
   }
 
+}else{
+  raw_avg_cost_ben_mercs_to_farmers <- "N.M."
+  mercs_mutualists <- "N.M."
+  stdev_cost_ben <- "N.M."
 }
 
 
@@ -341,10 +353,11 @@ data_vec <- c(
     all3_r_metapop_stdev,
 
     r_foraging,
+    
     mercs_mutualists,
-
     raw_avg_cost_ben_mercs_to_farmers,
     stdev_cost_ben,
+
     Notes,
     datadir,
     plotfp,
