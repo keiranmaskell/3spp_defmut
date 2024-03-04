@@ -1,5 +1,13 @@
 rm(list=ls())
 
+#sets working directory or throws an error if no path is provided in the call
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) > 0) {
+    setwd(args[1])
+} else {
+    stop("SPECIFY MAIN WORKING DIRECTORY (the 3spp_defmut-main dir)")
+}
+
 #initialize
 source("src/init.R")
 
