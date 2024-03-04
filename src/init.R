@@ -14,6 +14,8 @@ if(readline("Use default wd (search for '3spp_defmut-main' from Downloads folder
   setwd(wd)
 }
 
+sprintf("current working directory is %s", getwd())
+
 #audio message to play upon error
 sorry_dave <- function(){
    system("afplay ./resources/sorry_dave.mp3
