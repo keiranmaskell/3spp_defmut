@@ -232,7 +232,7 @@ plot.pop.all <- function(prms, res, plotfp, sumpatches=TRUE, print=FALSE){
 }
   
 
-plot.pop.patch(1,test_data$rundata[[1]]$prms, test_data$rundata[[1]]$res,"/Users/keiranmaskell/Desktop/quicktest",print=FALSE)
+#plot.pop.patch(1,test_data$rundata[[1]]$prms, test_data$rundata[[1]]$res,"/Users/keiranmaskell/Desktop/quicktest",print=FALSE)
 
 
 plot.pop.patch <- function(patch, prms, res, plotfp, print=FALSE){
