@@ -11,7 +11,7 @@ makeTransparent <- function(..., alpha=0.5) {
 
 
 
-plot_outcome_by_prm_values <- function(data,plot_fp,filter_yn==TRUE){
+plot_outcome_by_prm_values <- function(data,plot_fp,filter_yn=TRUE){
 
 #data must be master_df
     # names(master_df)
