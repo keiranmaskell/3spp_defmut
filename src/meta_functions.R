@@ -236,19 +236,6 @@ all3_r_metapop_stdev <- all3_metapop_data['raider metapop stdev'][1,1]
 tt <- gsub(' ','_', gsub(':','',Sys.time()))
 
 
-#if increasing returns causes the populations to hit the roof, don't try to calculate total_costs and component_costs
-if(!(any(res_all3 > 100000)) & calculate_costs ==TRUE){
-
-  total_cost_matrix(res_all3, prms, seedlist, fp, tt, testing =FALSE)
-
-  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"mu.r")
-  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"a.fm","a.mf")
-  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"v.v","sigma.v")
-  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"b.fr","sigma.r")
-  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"r.forage")
-}
-
-
 if(sum(res_all3[prms$ngens,'num.f',])!=0 & sum(res_all3[prms$ngens,'num.m',])!=0 & sum(res_all3[prms$ngens,'num.m',]!=0)){
   all3_outcome <- 'coex'
 }else{
@@ -267,6 +254,20 @@ if(sum(res_all3[prms$ngens,'num.f',])!=0 & sum(res_all3[prms$ngens,'num.m',])!=0
   }
 }
 
+#if increasing returns causes the populations to hit the roof and all3 coex
+#, don't try to calculate total_costs and component_costs
+if(!(any(res_all3 > 100000)) & all3_outcome == 'coex' & calculate_costs ==TRUE){
+
+  total_cost_matrix(res_all3, prms, seedlist, fp, tt, testing =FALSE)
+
+  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"mu.r")
+  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"a.fm","a.mf")
+  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"v.v","sigma.v")
+  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"b.fr","sigma.r")
+  component_cost_matrix(res_all3, make.prms(npatch=prms$npatch,ngens=prms$ngens),prms, seedlist, fp, tt, testing =FALSE,"r.forage")
+}
+
+  
 
 
 totaldata_list <- list.files(fp,pattern='total_costs')
