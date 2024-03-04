@@ -51,10 +51,10 @@ if (all(unlist(loaded_packages))) {
 
 
 #source all the R files needed for this project
-source('population_functions.R')
-source('base_prms.R')
-source('meta_functions.R')
-source('plotting.R')
+source('src/population_functions.R')
+source('src/base_prms.R')
+source('src/meta_functions.R')
+source('src/plotting.R')
  
 #initialize a population
 make.pop <- function(prms){
