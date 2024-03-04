@@ -69,5 +69,5 @@ if(!dir.exists("./output")){
   system("mkdir output")
 }
 if(!dir.exists("./figs")){
-  system("mkdir figs")
+  system("mkdir output/figs")
 }
